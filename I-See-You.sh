@@ -20,9 +20,16 @@
 #				is enabled for Screen Recording
 #
 #	- For this to function Correctly, Config Profiles will be needed to
-#		grant JAMF further permissions to access the TCC Database
-#		- At present this seems to be sending Apple Events to System Events
-#			and Full Disk Access, but this may possibly be able to be reduced a little.
+#		grant JAMF or any other program needed further permissions to access the TCC Database
+#	- At present this seems to be Accessibility	and Full Disk Access, but this may possibly be able to be reduced a little.
+#
+#	Programs that may require this would be.
+#		JAMF - Obviously
+#		Terminal - If this would be required to be run manually (or the Policy triggered) from that program
+#		SSHD - If this would be required to be run manually (or the Policy triggered) from a remote SSH Window
+#
+#		Any other remote Management program (This was originally written to facilitate ScreenConnect)
+#		that can remote execute code or Programs (Such as ScreenConnect) would also need these permissions
 #
 ###############################################################################################################################################
 #
