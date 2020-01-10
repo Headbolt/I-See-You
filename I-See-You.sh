@@ -32,7 +32,7 @@
 #
 #	- 07/01/2020 - V1.0 - Created by Headbolt
 #
-#   - 09/01/2020 - V1.1 - Updated by Headbolt
+#	- 09/01/2020 - V1.1 - Updated by Headbolt
 #							More comprehensive error checking and notation
 #
 ###############################################################################################################################################
@@ -50,8 +50,7 @@ AppIDstring=$4 # Grab the identifier to use when searching the TCC Database from
 AppName=$5 # Grab the app name to use in the Privcy Window from JAMF variable #5 eg connectwisecontrol-abcd1234efgh5678
 #
 # Set the name of the script for later logging
-ScriptName="ZZ 22 - Security & Privacy - Application ScreenRecording Permissions"
-#ScriptName="append prefix here as needed - Application ScreenRecording Permissions"
+ScriptName="append prefix here as needed - Application ScreenRecording Permissions"
 #
 ###############################################################################################################################################
 #
