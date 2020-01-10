@@ -4,7 +4,16 @@
 #
 # ABOUT THIS PROGRAM
 #
-#   This Script is designed for use in JAMF
+#	I-See-You.sh
+#	https://github.com/Headbolt/I-See-You
+#
+#   This Script is designed for use in JAMF as a Script in a policy called by a custom trigger,
+#		slaved to a Login Policy that calls this Policy and exits without waiting, this is to
+#		counter the GUI not starting until after the script has completed.
+#		
+#		This is deigned to run in conjunction with an Extension Attribute
+#		By the same Author named "JAMF-Ext-ScreenRec-Perm" also available on GitHub
+#		https://github.com/Headbolt/JAMF-Ext-ScreenRec-Perm
 #
 #   - This script will ...
 #			check the SCC Database to see if the specified Application
@@ -41,7 +50,8 @@ AppIDstring=$4 # Grab the identifier to use when searching the TCC Database from
 AppName=$5 # Grab the app name to use in the Privcy Window from JAMF variable #5 eg connectwisecontrol-abcd1234efgh5678
 #
 # Set the name of the script for later logging
-ScriptName="append prefix here as needed - Application ScreenRecording Permissions"
+ScriptName="ZZ 22 - Security & Privacy - Application ScreenRecording Permissions"
+#ScriptName="append prefix here as needed - Application ScreenRecording Permissions"
 #
 ###############################################################################################################################################
 #
@@ -213,12 +223,12 @@ sleep 5
 #
 AppStatusCheck
 #
-if [[ $AppStatus != 1 ]]
+if [[ $AppStatus != 1 ]] # If Application is not Enabled for ScreenRecording, begin processing
 	then
 		SectionEnd
 		#
-		open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
-		sleep 1
+		open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture' # Open correct System Preferences Page
+		sleep 1 # Pause to allow it time to open
 		SetPerms
 		SectionEnd
 		#
