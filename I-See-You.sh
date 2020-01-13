@@ -35,12 +35,15 @@
 #
 # HISTORY
 #
-#	Version: 1.1 - 09/01/2020
+#	Version: 1.2 - 13/01/2020
 #
 #	- 07/01/2020 - V1.0 - Created by Headbolt
 #
 #	- 09/01/2020 - V1.1 - Updated by Headbolt
 #							More comprehensive error checking and notation
+#   - 13/01/2020 - V1.2 - Updated by Headbolt
+#							Now allows for multiple entries by the target app, by filtering first
+#								for kTCCServiceScreenCapture and then the App Name
 #
 ###############################################################################################################################################
 #
@@ -108,12 +111,14 @@ AppStatusCheck(){
 #
 /bin/echo "Checking Current Permissions"
 #
-App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i $AppIDstring) # Find the line for the App
+#App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i $AppIDstring) # Find the line for the App
+App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i kTCCServiceScreenCapture | grep -i $AppIDstring) # Find the line for the App
 AccErr=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' 2>&1 | grep unable) # Check for permissions error
-read -ra AppStatusArray <<< "$App" # Read In the Array
+#read -ra AppStatusArray <<< "$App" # Read In the Array
 #
 IFS='|' # Internal Field Seperator Delimiter is set to Pipe (|)
-AppStatus=$(echo $AppStatusArray | awk '{ print $4 }')
+#AppStatus=$(echo $AppStatusArray | awk '{ print $4 }')
+AppStatus=$(echo $App | awk '{ print $4 }')
 unset IFS
 #
 if [[ "$AccErr" == "" ]] # Check if there was a permissions error accessing the TCC.db file
