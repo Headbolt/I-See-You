@@ -111,13 +111,10 @@ AppStatusCheck(){
 #
 /bin/echo "Checking Current Permissions"
 #
-#App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i $AppIDstring) # Find the line for the App
 App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' | grep -i kTCCServiceScreenCapture | grep -i $AppIDstring) # Find the line for the App
 AccErr=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' 2>&1 | grep unable) # Check for permissions error
-#read -ra AppStatusArray <<< "$App" # Read In the Array
 #
 IFS='|' # Internal Field Seperator Delimiter is set to Pipe (|)
-#AppStatus=$(echo $AppStatusArray | awk '{ print $4 }')
 AppStatus=$(echo $App | awk '{ print $4 }')
 unset IFS
 #
