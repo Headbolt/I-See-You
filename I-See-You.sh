@@ -35,7 +35,7 @@
 #
 # HISTORY
 #
-#	Version: 1.2 - 13/01/2020
+#	Version: 1.3 - 14/01/2020
 #
 #	- 07/01/2020 - V1.0 - Created by Headbolt
 #
@@ -44,6 +44,11 @@
 #   - 13/01/2020 - V1.2 - Updated by Headbolt
 #							Now allows for multiple entries by the target app, by filtering first
 #								for kTCCServiceScreenCapture and then the App Name
+#   - 14/01/2020 - V1.3 - Updated by Headbolt
+#							Now allows for multiple in the table, process got derailed by having more
+#								than 1 app in the window, large oversight missed by test machines being
+#								fresh builds for purpose, issue discovered once tested on "Live" machines,
+#								we now read in the number of rows in the table and step through them to find a match.
 #
 ###############################################################################################################################################
 #
@@ -150,8 +155,16 @@ SetPerms(){
 PermissionsCommand=$(echo '
 tell application "System Events"
 	tell process "System Preferences"
-		click checkbox 1 of UI element "'"$AppName"'" of row 1 of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
-		click button "Quit Now" of sheet 1 of window "Security & Privacy"
+		set NumOfRows to number of rows of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+		set i to 1
+		repeat while i < (NumOfRows + 1)
+			set AppVal to value of item 1 of static text 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+			if (AppVal = "'"$AppName"'") then
+				click checkbox 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+				click button "Quit Now" of sheet 1 of window "Security & Privacy"
+			end if
+			set i to i + 1
+		end repeat
 	end tell
 end tell
 #
@@ -165,7 +178,7 @@ end if
 #
 /bin/echo "Setting Permissions"
 /bin/echo # Outputting a Blank Line for Reporting Purposes
-
+#
 if [[ "$User" != "" ]] # Checking if a user is logged in
 	then
 		/bin/echo 'Running Command'
