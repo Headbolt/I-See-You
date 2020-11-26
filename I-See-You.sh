@@ -35,7 +35,7 @@
 #
 # HISTORY
 #
-#	Version: 1.3 - 14/01/2020
+#	Version: 1.4 - 26/11/2020
 #
 #	- 07/01/2020 - V1.0 - Created by Headbolt
 #
@@ -49,6 +49,13 @@
 #								than 1 app in the window, large oversight missed by test machines being
 #								fresh builds for purpose, issue discovered once tested on "Live" machines,
 #								we now read in the number of rows in the table and step through them to find a match.
+#   - 26/11/2020 - V1.4 - Updated by Headbolt
+# 							Added a check incase BASH not avaialable (MacOS 10.15.7 and above) and shell drops back to ZSH
+#								In Which Case an extra command is needed to utilise the Internal Field Separator
+#								Also added an OS Version Check to determine the Syntax for the Applescript
+# 									In Big Sur and later, after applying Screen Recording Permissions, 
+# 									the Prompt to reopen the program just granted Screen Recording Permissions has changed.
+# 									In Catalina, the prompt was "Later" or "Quit Now", In Big Sur, the prompt is "Later" or "Quit & Reopen"
 #
 ###############################################################################################################################################
 #
@@ -65,7 +72,10 @@ AppIDstring=$4 # Grab the identifier to use when searching the TCC Database from
 AppName=$5 # Grab the app name to use in the Privcy Window from JAMF variable #5 eg connectwisecontrol-abcd1234efgh5678
 #
 # Set the name of the script for later logging
-ScriptName="append prefix here as needed - Application ScreenRecording Permissions"
+ScriptName="ZZ 22 - Security & Privacy - Application ScreenRecording Permissions"
+#
+osMajor=$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. '{print $1}' ) # Grab the Major OS Version
+osMinor=$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. '{print $2}' ) # Grab the Minor OS Version
 #
 ###############################################################################################################################################
 #
@@ -120,6 +130,12 @@ App=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from 
 AccErr=$(sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'select * from access' 2>&1 | grep unable) # Check for permissions error
 #
 IFS='|' # Internal Field Seperator Delimiter is set to Pipe (|)
+#
+if [ $ZSH_VERSION ] # If Using ZSH instead of Bash then wordsplit needs enabling for the IFS to work
+	then
+		setopt sh_word_split
+fi
+#
 AppStatus=$(echo $App | awk '{ print $4 }')
 unset IFS
 #
@@ -150,31 +166,94 @@ fi
 #
 SetPerms(){
 #
-# Setting Command to be Run
+CAT="NO" # Setting the CATplus Variable to No as a starting point
+SURplus="NO" # Setting the SURplus Variable to No as a starting point
 #
-PermissionsCommand=$(echo '
-tell application "System Events"
-	tell process "System Preferences"
-		set NumOfRows to number of rows of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
-		set i to 1
-		repeat while i < (NumOfRows + 1)
-			set AppVal to value of item 1 of static text 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
-			if (AppVal = "'"$AppName"'") then
-				click checkbox 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
-				click button "Quit Now" of sheet 1 of window "Security & Privacy"
-			end if
-			set i to i + 1
-		end repeat
-	end tell
-end tell
+# Check the OS Version Number to determine the Syntax for the Applescript
+# In Big Sur and later, after applying Screen Recording Permissions, 
+# the Prompt to reopen the program just granted Screen Recording Permissions has changed.
+# In Catalina, the prompt was "Later" or "Quit Now", In Big Sur, the prompt is "Later" or "Quit & Reopen"
 #
-if application "System Preferences" is running then
-	tell application "System Preferences"
-		quit
-	end tell
-end if
- '
-)
+if [[ "$osMajor" -lt "11" ]]
+	then
+		if [[ "$osMajor" -lt "10" ]]
+			then
+				CAT="NO"
+			else 
+				if [[ "$osMinor" -le "14" ]]
+					then
+						CAT="NO"
+					else
+						if [[ "$osMinor" -eq "15" ]]
+							then
+								CAT="YES"
+							else
+								if [[ "$osMinor" -ge "16" ]]
+									then
+										SURplus="YES"
+								fi
+						fi
+				fi
+		fi
+	else
+		SURplus="YES"
+fi
+#
+if [[ "$CAT" == "YES" ]] # If OS is determined to be Catalina, run relevant piece of AppleScript
+	then
+		PermissionsCommand=$(echo '
+		tell application "System Events"
+			tell process "System Preferences"
+				set NumOfRows to number of rows of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+				set i to 1
+				repeat while i < (NumOfRows + 1)
+					set AppVal to value of item 1 of static text 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+					if (AppVal = "'"$AppName"'") then
+						click checkbox 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+						click button "Quit Now" of sheet 1 of window "Security & Privacy"
+					end if
+					set i to i + 1
+				end repeat
+			end tell
+		end tell
+		#
+		if application "System Preferences" is running then
+			tell application "System Preferences"
+				quit
+			end tell
+		end if
+		 '
+		)
+fi
+#
+if [[ "$SURplus" == "YES" ]] # If OS is determined to be Big Sur or Higher, run relevant piece of AppleScript
+	then
+		PermissionsCommand=$(echo '
+		tell application "System Events"
+			tell process "System Preferences"
+				set NumOfRows to number of rows of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+				set i to 1
+				repeat while i < (NumOfRows + 1)
+					set AppVal to value of item 1 of static text 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+					if (AppVal = "'"$AppName"'") then
+						click checkbox 1 of UI element 1 of row i of table 1 of scroll area 1 of group 1 of tab group 1 of window 1
+						click button "Quit & Reopen" of sheet 1 of window "Security & Privacy"
+					end if
+					set i to i + 1
+				end repeat
+			end tell
+		end tell
+		#
+		if application "System Preferences" is running then
+			tell application "System Preferences"
+				quit
+			end tell
+		end if
+		 '
+		)
+fi
+#
+# Run the relevant Applescript to set permissions
 #
 /bin/echo "Setting Permissions"
 /bin/echo # Outputting a Blank Line for Reporting Purposes
